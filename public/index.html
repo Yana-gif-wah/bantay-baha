@@ -4,57 +4,187 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bantay Baha Flood Monitor</title>
+  <!-- Google Fonts & Chart.js -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: sans-serif; margin: 0; padding: 15px; background: #f4f6f9; color: #333; }
-    .container { max-width: 600px; margin: auto; }
-    .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .status-box { font-size: 2.5rem; font-weight: bold; text-align: center; padding: 15px; border-radius: 8px; color: white; }
-    .bg-normal { background-color: #28a745; }
-    .bg-alert { background-color: #fd7e14; }
-    .bg-danger { background-color: #dc3545; }
-    .metrics { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-    .metric-item { flex: 1; min-width: 45%; background: #eee; padding: 10px; border-radius: 5px; text-align: center; }
-    button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-sub: #64748b;
+      --border-color: #e2e8f0;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --normal: #10b981;
+      --alert: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); padding-bottom: 30px; }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    .header h1 { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .header p { font-size: 0.85rem; opacity: 0.9; margin-top: 4px; }
+
+    .container { max-width: 500px; margin: 0 auto; padding: 0 15px; }
+
+    /* Card Styling */
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    }
+    .card-title { font-size: 0.9rem; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+
+    /* Live Indicator */
+    .live-dot {
+      height: 8px; width: 8px; background-color: var(--normal); border-radius: 50%; display: inline-block;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Water Level Display */
+    .status-box {
+      font-size: 2.8rem;
+      font-weight: 800;
+      text-align: center;
+      padding: 20px;
+      border-radius: 10px;
+      color: white;
+      transition: background-color 0.4s ease;
+    }
+    .bg-normal { background-color: var(--normal); }
+    .bg-alert { background-color: var(--alert); }
+    .bg-danger { background-color: var(--danger); }
+
+    /* Metrics Grid */
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .metric-item {
+      background: #f1f5f9;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .metric-label { font-size: 0.75rem; color: var(--text-sub); font-weight: 500; }
+    .metric-val { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-top: 2px; }
+
+    /* Button & Advisory */
+    .btn-ai {
+      width: 100%;
+      padding: 12px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .btn-ai:hover { background-color: var(--primary-hover); }
+    .advisory-box {
+      margin-top: 12px;
+      padding: 12px;
+      background: #eff6ff;
+      border-left: 4px solid var(--primary);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      display: none;
+    }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.85rem; }
+    th { text-align: left; padding: 10px; background: #f8fafc; color: var(--text-sub); border-bottom: 2px solid var(--border-color); font-weight: 600; }
+    td { padding: 10px; border-bottom: 1px solid var(--border-color); }
+    tr:last-child td { border-bottom: none; }
   </style>
 </head>
 <body>
+
+  <div class="header">
+    <h1>🌊 Bantay Baha Monitor</h1>
+    <p>Barangay Creek Real-Time Water Level</p>
+  </div>
+
   <div class="container">
-    <h2>🌊 Bantay Baha Monitor</h2>
     
+    <!-- Current Status Card -->
     <div class="card">
-      <div>Current Water Level</div>
+      <div class="card-title">
+        Current Status 
+        <span><span class="live-dot"></span> Live</span>
+      </div>
       <div id="statusBox" class="status-box bg-normal">-- cm</div>
     </div>
 
+    <!-- Analytics Card -->
     <div class="card">
-      <h3>Analytics Summary</h3>
+      <div class="card-title">Analytics Summary</div>
       <div class="metrics">
-        <div class="metric-item">Avg: <b id="avgVal">--</b> cm</div>
-        <div class="metric-item">Min/Max: <b id="minMaxVal">--</b></div>
-        <div class="metric-item">Trend: <b id="trendVal">--</b></div>
-        <div class="metric-item">Counts (N/A/D): <b id="countsVal">--</b></div>
+        <div class="metric-item">
+          <div class="metric-label">Average</div>
+          <div class="metric-val" id="avgVal">-- cm</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">Min / Max</div>
+          <div class="metric-val" id="minMaxVal">-- / --</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">Trend</div>
+          <div class="metric-val" id="trendVal">--</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">Counts (N/A/D)</div>
+          <div class="metric-val" id="countsVal">--/--/--</div>
+        </div>
       </div>
     </div>
 
+    <!-- AI Advisory Card -->
     <div class="card">
-      <button onclick="generateAdvisory()">Generate AI Advisory</button>
-      <p id="advisoryText" style="margin-top: 10px; font-style: italic;"></p>
+      <button class="btn-ai" id="aiBtn" onclick="generateAdvisory()">✨ Generate AI Advisory</button>
+      <div id="advisoryBox" class="advisory-box"></div>
     </div>
 
+    <!-- Chart Card -->
     <div class="card">
+      <div class="card-title">Water Level History</div>
       <canvas id="waterChart"></canvas>
     </div>
 
+    <!-- Recent Readings Table Card -->
     <div class="card">
-      <h3>Latest 10 Readings</h3>
+      <div class="card-title">Latest 10 Readings</div>
       <table>
-        <thead><tr><th>Time</th><th>Level (cm)</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Level (cm)</th>
+          </tr>
+        </thead>
         <tbody id="tableBody"></tbody>
       </table>
     </div>
+
   </div>
 
   <script>
@@ -63,44 +193,83 @@
       const ctx = document.getElementById('waterChart').getContext('2d');
       chart = new Chart(ctx, {
         type: 'line',
-        data: { labels: [], datasets: [{ label: 'Water Level (cm)', data: [], borderColor: '#007bff', fill: false }] },
-        options: { responsive: true, maintainAspectRatio: true }
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Water Level (cm)',
+            data: [],
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: false }
+          }
+        }
       });
     }
 
     async function fetchData() {
-      const resReadings = await fetch('/api/readings');
-      const readings = await resReadings.json();
-      
-      if (readings.length > 0) {
-        const current = readings[0].waterLevelCm;
-        const statusBox = document.getElementById('statusBox');
-        statusBox.innerText = `${current} cm`;
-        statusBox.className = 'status-box ' + (current < 100 ? 'bg-normal' : current <= 149 ? 'bg-alert' : 'bg-danger');
+      try {
+        const resReadings = await fetch('/api/readings');
+        const readings = await resReadings.json();
+        
+        if (readings.length > 0) {
+          const current = readings[0].waterLevelCm;
+          const statusBox = document.getElementById('statusBox');
+          statusBox.innerText = `${current} cm`;
+          
+          statusBox.className = 'status-box ' + (
+            current < 100 ? 'bg-normal' : 
+            current <= 149 ? 'bg-alert' : 'bg-danger'
+          );
 
-        document.getElementById('tableBody').innerHTML = readings.slice(0, 10).map(r => 
-          `<tr><td>${new Date(r.timestamp).toLocaleTimeString()}</td><td>${r.waterLevelCm}</td></tr>`
-        ).join('');
+          document.getElementById('tableBody').innerHTML = readings.slice(0, 10).map(r => 
+            `<tr><td>${new Date(r.timestamp).toLocaleTimeString()}</td><td><b>${r.waterLevelCm} cm</b></td></tr>`
+          ).join('');
 
-        const chartData = [...readings].reverse();
-        chart.data.labels = chartData.map(r => new Date(r.timestamp).toLocaleTimeString());
-        chart.data.datasets[0].data = chartData.map(r => r.waterLevelCm);
-        chart.update();
+          const chartData = [...readings].reverse();
+          chart.data.labels = chartData.map(r => new Date(r.timestamp).toLocaleTimeString());
+          chart.data.datasets[0].data = chartData.map(r => r.waterLevelCm);
+          chart.update();
+        }
+
+        const resSummary = await fetch('/api/summary');
+        const summary = await resSummary.json();
+        document.getElementById('avgVal').innerText = `${summary.average} cm`;
+        document.getElementById('minMaxVal').innerText = `${summary.min} / ${summary.max}`;
+        document.getElementById('trendVal').innerText = summary.trend.toUpperCase();
+        document.getElementById('countsVal').innerText = `${summary.statusCounts.Normal}/${summary.statusCounts.Alert}/${summary.statusCounts.Danger}`;
+      } catch (e) {
+        console.error("Error fetching data:", e);
       }
-
-      const resSummary = await fetch('/api/summary');
-      const summary = await resSummary.json();
-      document.getElementById('avgVal').innerText = summary.average;
-      document.getElementById('minMaxVal').innerText = `${summary.min} / ${summary.max}`;
-      document.getElementById('trendVal').innerText = summary.trend.toUpperCase();
-      document.getElementById('countsVal').innerText = `${summary.statusCounts.Normal}/${summary.statusCounts.Alert}/${summary.statusCounts.Danger}`;
     }
 
     async function generateAdvisory() {
-      document.getElementById('advisoryText').innerText = "Generating advisory...";
-      const res = await fetch('/api/advisory', { method: 'POST' });
-      const data = await res.json();
-      document.getElementById('advisoryText').innerText = data.advisory;
+      const btn = document.getElementById('aiBtn');
+      const box = document.getElementById('advisoryBox');
+      
+      btn.innerText = "Generating advisory...";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/advisory', { method: 'POST' });
+        const data = await res.json();
+        box.innerText = data.advisory;
+        box.style.display = "block";
+      } catch (err) {
+        box.innerText = "Unable to generate advisory at this moment.";
+        box.style.display = "block";
+      } finally {
+        btn.innerText = "✨ Generate AI Advisory";
+        btn.disabled = false;
+      }
     }
 
     initChart();
