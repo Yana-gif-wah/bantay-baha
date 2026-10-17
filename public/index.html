@@ -26,38 +26,50 @@
       background-attachment: fixed;
       color: var(--text-main);
       min-height: 100vh;
-      padding-bottom: 40px;
+      display: flex;
+      flex-direction: column;
+      padding: 15px 24px;
     }
 
-    .header { text-align: center; padding: 30px 20px 20px; }
+    .header { text-align: center; margin-bottom: 12px; }
     .header h1 {
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       font-weight: 800;
       color: #ffffff;
       text-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
     }
-    .header p { font-size: 0.85rem; color: var(--primary); margin-top: 6px; font-weight: 500; }
+    .header p { font-size: 0.8rem; color: var(--primary); font-weight: 500; }
 
-    .container { max-width: 520px; margin: 0 auto; padding: 0 16px; }
+    /* Full Screen Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 16px;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      flex: 1;
+    }
+
+    .column { display: flex; flex-direction: column; gap: 16px; }
 
     .card {
       background: var(--card-bg);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 16px;
+      border-radius: 14px;
+      padding: 16px;
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     }
     
     .card-title {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 700;
       color: var(--text-sub);
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -67,11 +79,11 @@
       display: flex; align-items: center; gap: 6px;
       background: rgba(16, 185, 129, 0.15);
       border: 1px solid rgba(16, 185, 129, 0.3);
-      color: #34d399; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem;
+      color: #34d399; padding: 3px 8px; border-radius: 20px; font-size: 0.65rem;
     }
 
     .live-dot {
-      height: 8px; width: 8px; background-color: var(--normal); border-radius: 50%;
+      height: 7px; width: 7px; background-color: var(--normal); border-radius: 50%;
       box-shadow: 0 0 8px var(--normal); animation: pulse 1.5s infinite;
     }
     @keyframes pulse {
@@ -82,8 +94,8 @@
 
     /* Water Level Display */
     .status-box {
-      font-size: 3rem; font-weight: 800; text-align: center;
-      padding: 20px; border-radius: 12px; color: white;
+      font-size: 2.8rem; font-weight: 800; text-align: center;
+      padding: 14px; border-radius: 10px; color: white;
       text-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: all 0.4s ease;
     }
     .bg-normal { background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
@@ -91,14 +103,14 @@
     .bg-danger { background: linear-gradient(135deg, #dc2626, #ef4444); box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
 
     /* Level Gauge Meter */
-    .level-gauge-container { margin-top: 15px; }
-    .gauge-labels { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 6px; }
+    .level-gauge-container { margin-top: 10px; }
+    .gauge-labels { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 700; margin-bottom: 4px; }
     .lbl-low { color: var(--normal); }
     .lbl-med { color: var(--alert); }
     .lbl-high { color: var(--danger); }
     
     .gauge-bar {
-      height: 10px; background: rgba(0,0,0,0.4); border-radius: 10px;
+      height: 8px; background: rgba(0,0,0,0.4); border-radius: 8px;
       position: relative; overflow: hidden; display: flex; border: 1px solid rgba(255,255,255,0.1);
     }
     .gauge-seg { flex: 1; height: 100%; opacity: 0.3; transition: opacity 0.3s; }
@@ -108,13 +120,13 @@
     .active-seg { opacity: 1; box-shadow: 0 0 10px currentColor; }
 
     /* Metrics Grid */
-    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .metric-item {
       background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.05);
-      padding: 12px; border-radius: 10px; text-align: center;
+      padding: 8px 10px; border-radius: 8px; text-align: center;
     }
-    .metric-label { font-size: 0.75rem; color: var(--text-sub); font-weight: 500; }
-    .metric-val { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-top: 2px; }
+    .metric-label { font-size: 0.7rem; color: var(--text-sub); font-weight: 500; }
+    .metric-val { font-size: 1rem; font-weight: 700; color: var(--text-main); margin-top: 2px; }
 
     /* AI Advisory Card */
     .ai-card {
@@ -123,116 +135,124 @@
     }
     
     .advisory-container {
-      padding: 16px;
+      padding: 12px;
       background: rgba(15, 23, 42, 0.8);
       border: 1px solid rgba(56, 189, 248, 0.2);
-      border-radius: 12px;
-      animation: fadeIn 0.4s ease;
+      border-radius: 10px;
     }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
     
     .advisory-header {
-      font-size: 0.75rem; font-weight: 700; color: var(--primary);
-      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
+      font-size: 0.7rem; font-weight: 700; color: var(--primary);
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;
       display: flex; align-items: center; justify-content: space-between;
     }
-    .advisory-text { font-size: 0.92rem; line-height: 1.6; color: #e2e8f0; font-weight: 400; }
+    .advisory-text { font-size: 0.85rem; line-height: 1.5; color: #e2e8f0; }
 
     .auto-tag {
-      font-size: 0.65rem; background: rgba(56, 189, 248, 0.2);
+      font-size: 0.6rem; background: rgba(56, 189, 248, 0.2);
       padding: 2px 6px; border-radius: 4px; color: var(--primary);
     }
 
     /* Table */
-    table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.85rem; }
-    th { text-align: left; padding: 10px; color: var(--text-sub); border-bottom: 1px solid var(--card-border); font-weight: 600; }
-    td { padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: var(--text-main); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    th { text-align: left; padding: 6px 8px; color: var(--text-sub); border-bottom: 1px solid var(--card-border); font-weight: 600; }
+    td { padding: 6px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: var(--text-main); }
+
+    /* Chart Canvas */
+    .chart-container { position: relative; height: 180px; }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h1>🌊 BANTAY BAHA MONITOR</h1>
-    <p>Barangay Creek Real-Time Flood Advisory</p>
+    <h1>🌊 BANTAY BAHA COMMAND CENTER</h1>
+    <p>Barangay Creek Real-Time Flood Advisory & Analytics Dashboard</p>
   </div>
 
-  <div class="container">
+  <div class="dashboard-grid">
     
-    <!-- Water Level Display with Gauge -->
-    <div class="card">
-      <div class="card-title">
-        Current Water Level
-        <span class="live-badge"><span class="live-dot"></span> LIVE SENSOR</span>
-      </div>
-      <div id="statusBox" class="status-box bg-normal">-- cm</div>
-
-      <!-- Level Gauge (LOW / MED / HIGH) -->
-      <div class="level-gauge-container">
-        <div class="gauge-labels">
-          <span class="lbl-low">LOW (&lt;100cm)</span>
-          <span class="lbl-med">MED (100-149cm)</span>
-          <span class="lbl-high">HIGH (150cm+)</span>
+    <!-- LEFT COLUMN -->
+    <div class="column">
+      <!-- Water Level & Gauge -->
+      <div class="card">
+        <div class="card-title">
+          Current Water Level
+          <span class="live-badge"><span class="live-dot"></span> LIVE SENSOR</span>
         </div>
-        <div class="gauge-bar">
-          <div id="segLow" class="gauge-seg seg-low active-seg"></div>
-          <div id="segMed" class="gauge-seg seg-med"></div>
-          <div id="segHigh" class="gauge-seg seg-high"></div>
+        <div id="statusBox" class="status-box bg-normal">-- cm</div>
+
+        <div class="level-gauge-container">
+          <div class="gauge-labels">
+            <span class="lbl-low">LOW (&lt;100cm)</span>
+            <span class="lbl-med">MED (100-149cm)</span>
+            <span class="lbl-high">HIGH (150cm+)</span>
+          </div>
+          <div class="gauge-bar">
+            <div id="segLow" class="gauge-seg seg-low active-seg"></div>
+            <div id="segMed" class="gauge-seg seg-seg-med"></div>
+            <div id="segHigh" class="gauge-seg seg-high"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Card -->
+      <div class="card">
+        <div class="card-title">Analytics Summary</div>
+        <div class="metrics">
+          <div class="metric-item">
+            <div class="metric-label">Average</div>
+            <div class="metric-val" id="avgVal">-- cm</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-label">Min / Max</div>
+            <div class="metric-val" id="minMaxVal">-- / --</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-label">Trend</div>
+            <div class="metric-val" id="trendVal">--</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-label">Counts (N / A / D)</div>
+            <div class="metric-val" id="countsVal">--/--/--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time AI Advisory Card -->
+      <div class="card ai-card">
+        <div class="advisory-container">
+          <div class="advisory-header">
+            <span>🤖 AI Public Advisory</span>
+            <span class="auto-tag">REAL-TIME</span>
+          </div>
+          <div id="advisoryText" class="advisory-text">Loading advisory...</div>
         </div>
       </div>
     </div>
 
-    <!-- Analytics Card -->
-    <div class="card">
-      <div class="card-title">Analytics Summary</div>
-      <div class="metrics">
-        <div class="metric-item">
-          <div class="metric-label">Average</div>
-          <div class="metric-val" id="avgVal">-- cm</div>
-        </div>
-        <div class="metric-item">
-          <div class="metric-label">Min / Max</div>
-          <div class="metric-val" id="minMaxVal">-- / --</div>
-        </div>
-        <div class="metric-item">
-          <div class="metric-label">Trend</div>
-          <div class="metric-val" id="trendVal">--</div>
-        </div>
-        <div class="metric-item">
-          <div class="metric-label">Counts (N / A / D)</div>
-          <div class="metric-val" id="countsVal">--/--/--</div>
+    <!-- RIGHT COLUMN -->
+    <div class="column">
+      <!-- Chart Card -->
+      <div class="card">
+        <div class="card-title">Water Level History</div>
+        <div class="chart-container">
+          <canvas id="waterChart"></canvas>
         </div>
       </div>
-    </div>
 
-    <!-- Real-Time AI Advisory Card -->
-    <div class="card ai-card">
-      <div class="advisory-container">
-        <div class="advisory-header">
-          <span>🤖 Real-Time AI Safety Advisory</span>
-          <span class="auto-tag">AUTO-UPDATED</span>
-        </div>
-        <div id="advisoryText" class="advisory-text">Loading advisory...</div>
+      <!-- Recent Readings Table -->
+      <div class="card" style="flex:1;">
+        <div class="card-title">Latest Readings Log</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Level (cm)</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
       </div>
-    </div>
-
-    <!-- Chart Card -->
-    <div class="card">
-      <div class="card-title">Water Level History</div>
-      <canvas id="waterChart"></canvas>
-    </div>
-
-    <!-- Recent Readings Table -->
-    <div class="card">
-      <div class="card-title">Latest 10 Readings</div>
-      <table>
-        <thead>
-          <tr>
-            <th>Timestamp</th>
-            <th>Level (cm)</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
     </div>
 
   </div>
@@ -259,10 +279,11 @@
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
-            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
           }
         }
       });
@@ -289,18 +310,16 @@
           const statusBox = document.getElementById('statusBox');
           statusBox.innerText = `${current} cm`;
           
-          // Color Code Status
           statusBox.className = 'status-box ' + (
             current < 100 ? 'bg-normal' : 
             current <= 149 ? 'bg-alert' : 'bg-danger'
           );
 
-          // Update LOW / MED / HIGH Gauge Indicator
           document.getElementById('segLow').className = 'gauge-seg seg-low ' + (current < 100 ? 'active-seg' : '');
           document.getElementById('segMed').className = 'gauge-seg seg-med ' + (current >= 100 && current <= 149 ? 'active-seg' : '');
           document.getElementById('segHigh').className = 'gauge-seg seg-high ' + (current >= 150 ? 'active-seg' : '');
 
-          document.getElementById('tableBody').innerHTML = readings.slice(0, 10).map(r => 
+          document.getElementById('tableBody').innerHTML = readings.slice(0, 7).map(r => 
             `<tr><td>${new Date(r.timestamp).toLocaleTimeString()}</td><td><b>${r.waterLevelCm} cm</b></td></tr>`
           ).join('');
 
@@ -309,7 +328,6 @@
           chart.data.datasets[0].data = chartData.map(r => r.waterLevelCm);
           chart.update();
 
-          // Auto-trigger advisory update when category changes or initial load
           const currentCategory = current < 100 ? 'LOW' : current <= 149 ? 'MED' : 'HIGH';
           if (lastLevelCategory !== currentCategory) {
             lastLevelCategory = currentCategory;
