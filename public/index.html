@@ -116,26 +116,17 @@
     .metric-label { font-size: 0.75rem; color: var(--text-sub); font-weight: 500; }
     .metric-val { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-top: 2px; }
 
-    /* Upgraded AI Advisory Card */
+    /* AI Advisory Card */
     .ai-card {
       background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(15, 23, 42, 0.6));
       border: 1px solid rgba(56, 189, 248, 0.25);
     }
-    .btn-ai {
-      width: 100%; padding: 14px;
-      background: linear-gradient(135deg, #0284c7, #38bdf8);
-      color: white; border: none; border-radius: 10px;
-      font-weight: 700; font-size: 0.95rem; cursor: pointer;
-      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3); transition: all 0.2s;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-    }
-    .btn-ai:hover { transform: translateY(-1px); filter: brightness(1.1); }
     
     .advisory-container {
-      margin-top: 14px; padding: 16px;
+      padding: 16px;
       background: rgba(15, 23, 42, 0.8);
       border: 1px solid rgba(56, 189, 248, 0.2);
-      border-radius: 12px; display: none;
+      border-radius: 12px;
       animation: fadeIn 0.4s ease;
     }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -143,9 +134,14 @@
     .advisory-header {
       font-size: 0.75rem; font-weight: 700; color: var(--primary);
       text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
-      display: flex; align-items: center; gap: 6px;
+      display: flex; align-items: center; justify-content: space-between;
     }
     .advisory-text { font-size: 0.92rem; line-height: 1.6; color: #e2e8f0; font-weight: 400; }
+
+    .auto-tag {
+      font-size: 0.65rem; background: rgba(56, 189, 248, 0.2);
+      padding: 2px 6px; border-radius: 4px; color: var(--primary);
+    }
 
     /* Table */
     table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.85rem; }
@@ -208,14 +204,14 @@
       </div>
     </div>
 
-    <!-- Upgraded AI Advisory Card -->
+    <!-- Real-Time AI Advisory Card -->
     <div class="card ai-card">
-      <button class="btn-ai" id="aiBtn" onclick="generateAdvisory()">
-        <span>✨ Generate AI Public Advisory</span>
-      </button>
-      <div id="advisoryContainer" class="advisory-container">
-        <div class="advisory-header">🤖 AI Safety Advisory</div>
-        <div id="advisoryText" class="advisory-text"></div>
+      <div class="advisory-container">
+        <div class="advisory-header">
+          <span>🤖 Real-Time AI Safety Advisory</span>
+          <span class="auto-tag">AUTO-UPDATED</span>
+        </div>
+        <div id="advisoryText" class="advisory-text">Loading advisory...</div>
       </div>
     </div>
 
@@ -243,6 +239,8 @@
 
   <script>
     let chart;
+    let lastLevelCategory = null;
+
     function initChart() {
       const ctx = document.getElementById('waterChart').getContext('2d');
       chart = new Chart(ctx, {
@@ -268,6 +266,17 @@
           }
         }
       });
+    }
+
+    async function generateAdvisory() {
+      const text = document.getElementById('advisoryText');
+      try {
+        const res = await fetch('/api/advisory', { method: 'POST' });
+        const data = await res.json();
+        text.innerText = data.advisory;
+      } catch (err) {
+        text.innerText = "Unable to fetch live advisory.";
+      }
     }
 
     async function fetchData() {
@@ -299,6 +308,13 @@
           chart.data.labels = chartData.map(r => new Date(r.timestamp).toLocaleTimeString());
           chart.data.datasets[0].data = chartData.map(r => r.waterLevelCm);
           chart.update();
+
+          // Auto-trigger advisory update when category changes or initial load
+          const currentCategory = current < 100 ? 'LOW' : current <= 149 ? 'MED' : 'HIGH';
+          if (lastLevelCategory !== currentCategory) {
+            lastLevelCategory = currentCategory;
+            generateAdvisory();
+          }
         }
 
         const resSummary = await fetch('/api/summary');
@@ -309,28 +325,6 @@
         document.getElementById('countsVal').innerText = `${summary.statusCounts.Normal}/${summary.statusCounts.Alert}/${summary.statusCounts.Danger}`;
       } catch (e) {
         console.error("Error fetching data:", e);
-      }
-    }
-
-    async function generateAdvisory() {
-      const btn = document.getElementById('aiBtn');
-      const container = document.getElementById('advisoryContainer');
-      const text = document.getElementById('advisoryText');
-      
-      btn.innerHTML = "<span>⏳ Analyzing flood metrics...</span>";
-      btn.disabled = true;
-
-      try {
-        const res = await fetch('/api/advisory', { method: 'POST' });
-        const data = await res.json();
-        text.innerText = data.advisory;
-        container.style.display = "block";
-      } catch (err) {
-        text.innerText = "Unable to generate advisory at this moment.";
-        container.style.display = "block";
-      } finally {
-        btn.innerHTML = "<span>✨ Generate AI Public Advisory</span>";
-        btn.disabled = false;
       }
     }
 
