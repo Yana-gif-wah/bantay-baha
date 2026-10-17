@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bantay Baha Flood Monitor</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 15px; background: #f4f6f9; color: #333; }
+    .container { max-width: 600px; margin: auto; }
+    .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .status-box { font-size: 2.5rem; font-weight: bold; text-align: center; padding: 15px; border-radius: 8px; color: white; }
+    .bg-normal { background-color: #28a745; }
+    .bg-alert { background-color: #fd7e14; }
+    .bg-danger { background-color: #dc3545; }
+    .metrics { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .metric-item { flex: 1; min-width: 45%; background: #eee; padding: 10px; border-radius: 5px; text-align: center; }
+    button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🌊 Bantay Baha Monitor</h2>
+    
+    <div class="card">
+      <div>Current Water Level</div>
+      <div id="statusBox" class="status-box bg-normal">-- cm</div>
+    </div>
+
+    <div class="card">
+      <h3>Analytics Summary</h3>
+      <div class="metrics">
+        <div class="metric-item">Avg: <b id="avgVal">--</b> cm</div>
+        <div class="metric-item">Min/Max: <b id="minMaxVal">--</b></div>
+        <div class="metric-item">Trend: <b id="trendVal">--</b></div>
+        <div class="metric-item">Counts (N/A/D): <b id="countsVal">--</b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <button onclick="generateAdvisory()">Generate AI Advisory</button>
+      <p id="advisoryText" style="margin-top: 10px; font-style: italic;"></p>
+    </div>
+
+    <div class="card">
+      <canvas id="waterChart"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Latest 10 Readings</h3>
+      <table>
+        <thead><tr><th>Time</th><th>Level (cm)</th></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let chart;
+    function initChart() {
+      const ctx = document.getElementById('waterChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Water Level (cm)', data: [], borderColor: '#007bff', fill: false }] },
+        options: { responsive: true, maintainAspectRatio: true }
+      });
+    }
+
+    async function fetchData() {
+      const resReadings = await fetch('/api/readings');
+      const readings = await resReadings.json();
+      
+      if (readings.length > 0) {
+        const current = readings[0].waterLevelCm;
+        const statusBox = document.getElementById('statusBox');
+        statusBox.innerText = `${current} cm`;
+        statusBox.className = 'status-box ' + (current < 100 ? 'bg-normal' : current <= 149 ? 'bg-alert' : 'bg-danger');
+
+        document.getElementById('tableBody').innerHTML = readings.slice(0, 10).map(r => 
+          `<tr><td>${new Date(r.timestamp).toLocaleTimeString()}</td><td>${r.waterLevelCm}</td></tr>`
+        ).join('');
+
+        const chartData = [...readings].reverse();
+        chart.data.labels = chartData.map(r => new Date(r.timestamp).toLocaleTimeString());
+        chart.data.datasets[0].data = chartData.map(r => r.waterLevelCm);
+        chart.update();
+      }
+
+      const resSummary = await fetch('/api/summary');
+      const summary = await resSummary.json();
+      document.getElementById('avgVal').innerText = summary.average;
+      document.getElementById('minMaxVal').innerText = `${summary.min} / ${summary.max}`;
+      document.getElementById('trendVal').innerText = summary.trend.toUpperCase();
+      document.getElementById('countsVal').innerText = `${summary.statusCounts.Normal}/${summary.statusCounts.Alert}/${summary.statusCounts.Danger}`;
+    }
+
+    async function generateAdvisory() {
+      document.getElementById('advisoryText').innerText = "Generating advisory...";
+      const res = await fetch('/api/advisory', { method: 'POST' });
+      const data = await res.json();
+      document.getElementById('advisoryText').innerText = data.advisory;
+    }
+
+    initChart();
+    fetchData();
+    setInterval(fetchData, 5000);
+  </script>
+</body>
+</html>
