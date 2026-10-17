@@ -4,6 +4,18 @@ const path = require('path');
 const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
+
+// Enable CORS so the IoT simulator can POST to Render from external terminals/environments
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'GET, POST');
+    return res.status(200).json({});
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -97,6 +109,11 @@ Write a short, clear public advisory in BOTH Filipino and English (max 3 sentenc
     }
     res.json({ advisory: fallbackText, fallback: true });
   }
+});
+
+// Catch-all route to serve the front-end dashboard
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
