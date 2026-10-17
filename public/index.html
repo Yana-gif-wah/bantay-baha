@@ -313,6 +313,48 @@
     let chart;
     let lastLevelCategory = null;
     let modalShownForCurrentHigh = false;
+    let audioCtx = null;
+    let alarmInterval = null;
+
+    // Web Audio API Siren Sound Generator
+    function playAlarmSound() {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        function produceBeep() {
+          if (!audioCtx) return;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(880, audioCtx.currentTime); // High pitch siren
+          osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.3);
+          
+          gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+          
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        produceBeep();
+        alarmInterval = setInterval(produceBeep, 500);
+      } catch (e) {
+        console.log("Audio play blocked or not supported:", e);
+      }
+    }
+
+    function stopAlarmSound() {
+      if (alarmInterval) {
+        clearInterval(alarmInterval);
+        alarmInterval = null;
+      }
+    }
 
     function initChart() {
       const ctx = document.getElementById('waterChart').getContext('2d');
@@ -357,6 +399,7 @@
 
     function closeModal() {
       document.getElementById('alertModal').style.display = 'none';
+      stopAlarmSound();
     }
 
     async function fetchData() {
@@ -393,13 +436,15 @@
             lastLevelCategory = currentCategory;
             const advisory = await generateAdvisory();
 
-            // POP-UP TRIGGER FOR HIGH WATER LEVEL (150cm+)
+            // POP-UP TRIGGER FOR HIGH WATER LEVEL (150cm+) WITH ALARM SOUND
             if (currentCategory === 'HIGH' && !modalShownForCurrentHigh) {
               document.getElementById('modalText').innerText = advisory;
               document.getElementById('alertModal').style.display = 'flex';
               modalShownForCurrentHigh = true;
+              playAlarmSound();
             } else if (currentCategory !== 'HIGH') {
               modalShownForCurrentHigh = false;
+              stopAlarmSound();
             }
           }
         }
