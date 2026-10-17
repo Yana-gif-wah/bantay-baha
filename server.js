@@ -5,6 +5,7 @@ const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
 
+// Enable CORS so the IoT simulator can POST to Render from external terminals/environments
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -18,8 +19,10 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// In-memory data store
 let readings = [];
 
+// Helper function to calculate analytics
 function computeAnalytics() {
   if (readings.length === 0) {
     return { average: 0, min: 0, max: 0, statusCounts: { Normal: 0, Alert: 0, Danger: 0 }, trend: 'steady' };
@@ -38,6 +41,7 @@ function computeAnalytics() {
     else statusCounts.Danger++;
   });
 
+  // Calculate trend comparing last 5 vs previous 5
   let trend = 'steady';
   if (readings.length >= 10) {
     const recent5 = readings.slice(0, 5).reduce((a, b) => a + b.waterLevelCm, 0) / 5;
@@ -49,6 +53,7 @@ function computeAnalytics() {
   return { average, min, max, statusCounts, trend };
 }
 
+// POST /api/readings
 app.post('/api/readings', (req, res) => {
   const { sensorId, waterLevelCm, timestamp } = req.body;
 
@@ -57,21 +62,24 @@ app.post('/api/readings', (req, res) => {
   }
 
   const newReading = { sensorId, waterLevelCm, timestamp: timestamp || new Date().toISOString() };
-  readings.unshift(newReading);
+  readings.unshift(newReading); // Add to beginning (newest first)
   
   if (readings.length > 50) readings.pop();
 
   res.status(201).json(newReading);
 });
 
+// GET /api/readings
 app.get('/api/readings', (req, res) => {
   res.json(readings.slice(0, 50));
 });
 
+// GET /api/summary
 app.get('/api/summary', (req, res) => {
   res.json(computeAnalytics());
 });
 
+// POST /api/advisory (Generative AI & Fallback)
 app.post('/api/advisory', async (req, res) => {
   const analytics = computeAnalytics();
   const latestLevel = readings.length > 0 ? readings[0].waterLevelCm : 0;
@@ -90,6 +98,7 @@ Write a short, clear public advisory in BOTH Filipino and English (max 3 sentenc
 
     res.json({ advisory: response.text });
   } catch (err) {
+    // Rule-based fallback if AI fails
     let fallbackText = '';
     if (latestLevel >= 150) {
       fallbackText = "DANGER: High water level detected! Evacuate to higher ground immediately. / PANGANIB: Mataas ang tubig! Lumikas agad sa mas mataas na lugar.";
@@ -102,7 +111,8 @@ Write a short, clear public advisory in BOTH Filipino and English (max 3 sentenc
   }
 });
 
-app.get('*', (req, res) => {
+// Safe Catch-all Fallback (Express 4/5 compatible without PathError)
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
