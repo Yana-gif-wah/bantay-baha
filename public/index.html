@@ -4,136 +4,185 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bantay Baha Flood Monitor</title>
-  <!-- Google Fonts & Chart.js -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #0f172a;
-      --text-sub: #64748b;
-      --border-color: #e2e8f0;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
+      --bg-gradient: linear-gradient(135deg, #0b132b 0%, #1c2541 50%, #0f172a 100%);
+      --card-bg: rgba(255, 255, 255, 0.07);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --primary: #38bdf8;
       --normal: #10b981;
       --alert: #f59e0b;
       --danger: #ef4444;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); padding-bottom: 30px; }
-
-    /* Header */
-    .header {
-      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-      color: white;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-main);
+      min-height: 100vh;
+      padding-bottom: 40px;
     }
-    .header h1 { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .header p { font-size: 0.85rem; opacity: 0.9; margin-top: 4px; }
 
-    .container { max-width: 500px; margin: 0 auto; padding: 0 15px; }
+    .header { text-align: center; padding: 30px 20px 20px; }
+    .header h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #ffffff;
+      text-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
+    }
+    .header p { font-size: 0.85rem; color: var(--primary); margin-top: 6px; font-weight: 500; }
 
-    /* Card Styling */
+    .container { max-width: 520px; margin: 0 auto; padding: 0 16px; }
+
     .card {
       background: var(--card-bg);
-      border-radius: 12px;
-      padding: 18px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
       margin-bottom: 16px;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     }
-    .card-title { font-size: 0.9rem; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    
+    .card-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-    /* Live Indicator */
+    .live-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem;
+    }
+
     .live-dot {
-      height: 8px; width: 8px; background-color: var(--normal); border-radius: 50%; display: inline-block;
-      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-      animation: pulse 1.5s infinite;
+      height: 8px; width: 8px; background-color: var(--normal); border-radius: 50%;
+      box-shadow: 0 0 8px var(--normal); animation: pulse 1.5s infinite;
     }
     @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-      70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
     }
 
     /* Water Level Display */
     .status-box {
-      font-size: 2.8rem;
-      font-weight: 800;
-      text-align: center;
-      padding: 20px;
-      border-radius: 10px;
-      color: white;
-      transition: background-color 0.4s ease;
+      font-size: 3rem; font-weight: 800; text-align: center;
+      padding: 20px; border-radius: 12px; color: white;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: all 0.4s ease;
     }
-    .bg-normal { background-color: var(--normal); }
-    .bg-alert { background-color: var(--alert); }
-    .bg-danger { background-color: var(--danger); }
+    .bg-normal { background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+    .bg-alert { background: linear-gradient(135deg, #d97706, #f59e0b); box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
+    .bg-danger { background: linear-gradient(135deg, #dc2626, #ef4444); box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+
+    /* Level Gauge Meter */
+    .level-gauge-container { margin-top: 15px; }
+    .gauge-labels { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 6px; }
+    .lbl-low { color: var(--normal); }
+    .lbl-med { color: var(--alert); }
+    .lbl-high { color: var(--danger); }
+    
+    .gauge-bar {
+      height: 10px; background: rgba(0,0,0,0.4); border-radius: 10px;
+      position: relative; overflow: hidden; display: flex; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .gauge-seg { flex: 1; height: 100%; opacity: 0.3; transition: opacity 0.3s; }
+    .seg-low { background: var(--normal); }
+    .seg-med { background: var(--alert); }
+    .seg-high { background: var(--danger); }
+    .active-seg { opacity: 1; box-shadow: 0 0 10px currentColor; }
 
     /* Metrics Grid */
     .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .metric-item {
-      background: #f1f5f9;
-      padding: 12px;
-      border-radius: 8px;
-      text-align: center;
+      background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 12px; border-radius: 10px; text-align: center;
     }
     .metric-label { font-size: 0.75rem; color: var(--text-sub); font-weight: 500; }
     .metric-val { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-top: 2px; }
 
-    /* Button & Advisory */
+    /* Upgraded AI Advisory Card */
+    .ai-card {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(15, 23, 42, 0.6));
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
     .btn-ai {
-      width: 100%;
-      padding: 12px;
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: background-color 0.2s;
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: white; border: none; border-radius: 10px;
+      font-weight: 700; font-size: 0.95rem; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3); transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    .btn-ai:hover { background-color: var(--primary-hover); }
-    .advisory-box {
-      margin-top: 12px;
-      padding: 12px;
-      background: #eff6ff;
-      border-left: 4px solid var(--primary);
-      border-radius: 6px;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      display: none;
+    .btn-ai:hover { transform: translateY(-1px); filter: brightness(1.1); }
+    
+    .advisory-container {
+      margin-top: 14px; padding: 16px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 12px; display: none;
+      animation: fadeIn 0.4s ease;
     }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .advisory-header {
+      font-size: 0.75rem; font-weight: 700; color: var(--primary);
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .advisory-text { font-size: 0.92rem; line-height: 1.6; color: #e2e8f0; font-weight: 400; }
 
     /* Table */
     table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.85rem; }
-    th { text-align: left; padding: 10px; background: #f8fafc; color: var(--text-sub); border-bottom: 2px solid var(--border-color); font-weight: 600; }
-    td { padding: 10px; border-bottom: 1px solid var(--border-color); }
-    tr:last-child td { border-bottom: none; }
+    th { text-align: left; padding: 10px; color: var(--text-sub); border-bottom: 1px solid var(--card-border); font-weight: 600; }
+    td { padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: var(--text-main); }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h1>🌊 Bantay Baha Monitor</h1>
-    <p>Barangay Creek Real-Time Water Level</p>
+    <h1>🌊 BANTAY BAHA MONITOR</h1>
+    <p>Barangay Creek Real-Time Flood Advisory</p>
   </div>
 
   <div class="container">
     
-    <!-- Current Status Card -->
+    <!-- Water Level Display with Gauge -->
     <div class="card">
       <div class="card-title">
-        Current Status 
-        <span><span class="live-dot"></span> Live</span>
+        Current Water Level
+        <span class="live-badge"><span class="live-dot"></span> LIVE SENSOR</span>
       </div>
       <div id="statusBox" class="status-box bg-normal">-- cm</div>
+
+      <!-- Level Gauge (LOW / MED / HIGH) -->
+      <div class="level-gauge-container">
+        <div class="gauge-labels">
+          <span class="lbl-low">LOW (&lt;100cm)</span>
+          <span class="lbl-med">MED (100-149cm)</span>
+          <span class="lbl-high">HIGH (150cm+)</span>
+        </div>
+        <div class="gauge-bar">
+          <div id="segLow" class="gauge-seg seg-low active-seg"></div>
+          <div id="segMed" class="gauge-seg seg-med"></div>
+          <div id="segHigh" class="gauge-seg seg-high"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Analytics Card -->
@@ -153,16 +202,21 @@
           <div class="metric-val" id="trendVal">--</div>
         </div>
         <div class="metric-item">
-          <div class="metric-label">Counts (N/A/D)</div>
+          <div class="metric-label">Counts (N / A / D)</div>
           <div class="metric-val" id="countsVal">--/--/--</div>
         </div>
       </div>
     </div>
 
-    <!-- AI Advisory Card -->
-    <div class="card">
-      <button class="btn-ai" id="aiBtn" onclick="generateAdvisory()">✨ Generate AI Advisory</button>
-      <div id="advisoryBox" class="advisory-box"></div>
+    <!-- Upgraded AI Advisory Card -->
+    <div class="card ai-card">
+      <button class="btn-ai" id="aiBtn" onclick="generateAdvisory()">
+        <span>✨ Generate AI Public Advisory</span>
+      </button>
+      <div id="advisoryContainer" class="advisory-container">
+        <div class="advisory-header">🤖 AI Safety Advisory</div>
+        <div id="advisoryText" class="advisory-text"></div>
+      </div>
     </div>
 
     <!-- Chart Card -->
@@ -171,7 +225,7 @@
       <canvas id="waterChart"></canvas>
     </div>
 
-    <!-- Recent Readings Table Card -->
+    <!-- Recent Readings Table -->
     <div class="card">
       <div class="card-title">Latest 10 Readings</div>
       <table>
@@ -198,18 +252,19 @@
           datasets: [{
             label: 'Water Level (cm)',
             data: [],
-            borderColor: '#2563eb',
-            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56, 189, 248, 0.15)',
             fill: true,
-            tension: 0.3
+            tension: 0.3,
+            pointBackgroundColor: '#38bdf8'
           }]
         },
         options: {
           responsive: true,
           plugins: { legend: { display: false } },
           scales: {
-            x: { grid: { display: false } },
-            y: { beginAtZero: false }
+            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
           }
         }
       });
@@ -225,10 +280,16 @@
           const statusBox = document.getElementById('statusBox');
           statusBox.innerText = `${current} cm`;
           
+          // Color Code Status
           statusBox.className = 'status-box ' + (
             current < 100 ? 'bg-normal' : 
             current <= 149 ? 'bg-alert' : 'bg-danger'
           );
+
+          // Update LOW / MED / HIGH Gauge Indicator
+          document.getElementById('segLow').className = 'gauge-seg seg-low ' + (current < 100 ? 'active-seg' : '');
+          document.getElementById('segMed').className = 'gauge-seg seg-med ' + (current >= 100 && current <= 149 ? 'active-seg' : '');
+          document.getElementById('segHigh').className = 'gauge-seg seg-high ' + (current >= 150 ? 'active-seg' : '');
 
           document.getElementById('tableBody').innerHTML = readings.slice(0, 10).map(r => 
             `<tr><td>${new Date(r.timestamp).toLocaleTimeString()}</td><td><b>${r.waterLevelCm} cm</b></td></tr>`
@@ -253,21 +314,22 @@
 
     async function generateAdvisory() {
       const btn = document.getElementById('aiBtn');
-      const box = document.getElementById('advisoryBox');
+      const container = document.getElementById('advisoryContainer');
+      const text = document.getElementById('advisoryText');
       
-      btn.innerText = "Generating advisory...";
+      btn.innerHTML = "<span>⏳ Analyzing flood metrics...</span>";
       btn.disabled = true;
 
       try {
         const res = await fetch('/api/advisory', { method: 'POST' });
         const data = await res.json();
-        box.innerText = data.advisory;
-        box.style.display = "block";
+        text.innerText = data.advisory;
+        container.style.display = "block";
       } catch (err) {
-        box.innerText = "Unable to generate advisory at this moment.";
-        box.style.display = "block";
+        text.innerText = "Unable to generate advisory at this moment.";
+        container.style.display = "block";
       } finally {
-        btn.innerText = "✨ Generate AI Advisory";
+        btn.innerHTML = "<span>✨ Generate AI Public Advisory</span>";
         btn.disabled = false;
       }
     }
