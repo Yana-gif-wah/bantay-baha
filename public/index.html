@@ -146,7 +146,7 @@
     .metric-label { font-size: 0.7rem; color: var(--text-sub); font-weight: 500; }
     .metric-val { font-size: 1rem; font-weight: 700; color: var(--text-main); margin-top: 2px; }
 
-    /* AI Advisory Card - Stacked English & Tagalog Layout + Voice Button */
+    /* AI Advisory Card */
     .ai-card {
       background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(15, 23, 42, 0.6));
       border: 1px solid rgba(56, 189, 248, 0.25);
@@ -367,7 +367,7 @@
       <div class="modal-icon">🚨</div>
       <div class="modal-title">CRITICAL FLOOD WARNING</div>
       <div class="modal-body" id="modalText">
-        Danger Level Detected! Water level has exceeded 150cm. Immediate evacuation recommended!
+        CRITICAL DANGER: Water level has exceeded 150cm! Immediate evacuation recommended.
       </div>
       <button class="modal-btn" onclick="closeModal()">ACKNOWLEDGE ALERT</button>
     </div>
@@ -387,7 +387,6 @@
 
         let englishText = document.getElementById('advisoryEnglish').innerText;
         
-        // Siguraduhing kukunin LANG ang text bago ang "/" separator para walang Tagalog na makalusot
         if (englishText.includes('/')) {
           englishText = englishText.split('/')[0].trim();
         }
@@ -553,7 +552,12 @@
             const advisory = await generateAdvisory();
 
             if (currentCategory === 'HIGH' && !modalShownForCurrentHigh) {
-              document.getElementById('modalText').innerText = advisory;
+              // Kukunin lang ang English portion bago ang slash (/) para sa Pop-up Modal!
+              let modalMsg = advisory;
+              if (modalMsg.includes('/')) {
+                modalMsg = modalMsg.split('/')[0].trim();
+              }
+              document.getElementById('modalText').innerText = modalMsg;
               document.getElementById('alertModal').style.display = 'flex';
               modalShownForCurrentHigh = true;
               playAlarmSound();
@@ -576,7 +580,7 @@
       }
     }
 
-    // FRONT-END AUTO-GENERATOR FALLBACK (Tumatakbo kahit sarado ang laptop / patay ang terminal loop)
+    // FRONT-END AUTO-GENERATOR FALLBACK
     async function autoGenerateIfIdle() {
       try {
         const res = await fetch('/api/readings');
