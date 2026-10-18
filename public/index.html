@@ -146,7 +146,7 @@
     .metric-label { font-size: 0.7rem; color: var(--text-sub); font-weight: 500; }
     .metric-val { font-size: 1rem; font-weight: 700; color: var(--text-main); margin-top: 2px; }
 
-    /* AI Advisory Card & Dropdown */
+    /* AI Advisory Card - Stacked English & Tagalog Layout */
     .ai-card {
       background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(15, 23, 42, 0.6));
       border: 1px solid rgba(56, 189, 248, 0.25);
@@ -157,42 +157,37 @@
     }
     .advisory-header {
       font-size: 0.7rem; font-weight: 700; color: var(--primary);
-      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
       display: flex; align-items: center; justify-content: space-between;
     }
-    .advisory-english { font-size: 0.85rem; line-height: 1.5; color: #e2e8f0; user-select: text; font-weight: 500; }
-    .auto-tag { font-size: 0.6rem; background: rgba(56, 189, 248, 0.2); padding: 2px 6px; border-radius: 4px; color: var(--primary); }
-
-    /* Tagalog Dropdown Style */
-    .dropdown-btn {
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      color: var(--primary);
-      width: 100%;
-      padding: 8px 12px;
-      margin-top: 10px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.2s ease;
+    .advisory-english { font-size: 0.85rem; line-height: 1.4; color: #f8fafc; user-select: text; font-weight: 500; }
+    
+    .advisory-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 10px 0;
     }
-    .dropdown-btn:hover { background: rgba(56, 189, 248, 0.2); }
-    .dropdown-content {
-      display: none;
-      padding: 10px;
-      margin-top: 6px;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 6px;
-      border-left: 3px solid var(--primary);
-      font-size: 0.82rem;
-      line-height: 1.5;
+
+    .tagalog-block {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .tagalog-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .advisory-tagalog {
+      font-size: 0.83rem;
+      line-height: 1.4;
       color: #cbd5e1;
       user-select: text;
     }
+
+    .auto-tag { font-size: 0.6rem; background: rgba(56, 189, 248, 0.2); padding: 2px 6px; border-radius: 4px; color: var(--primary); }
 
     /* Table */
     table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
@@ -300,14 +295,17 @@
             <span>🤖 AI Public Advisory</span>
             <span class="auto-tag">REAL-TIME</span>
           </div>
+          
+          <!-- English Advisory Text -->
           <div id="advisoryEnglish" class="advisory-english">Loading advisory...</div>
           
-          <!-- Collapsible Tagalog Dropdown -->
-          <button class="dropdown-btn" onclick="toggleTagalog()">
-            <span>🇵🇭 Tagalog Version</span>
-            <span id="dropdownIcon">▼</span>
-          </button>
-          <div id="advisoryTagalog" class="dropdown-content">Loading...</div>
+          <div class="advisory-divider"></div>
+
+          <!-- Tagalog Advisory Text Block -->
+          <div class="tagalog-block">
+            <span class="tagalog-label">🇵🇭 Tagalog Version:</span>
+            <div id="advisoryTagalog" class="advisory-tagalog">Naglo-load...</div>
+          </div>
         </div>
       </div>
     </div>
@@ -354,18 +352,6 @@
     let modalShownForCurrentHigh = false;
     let audioCtx = null;
     let alarmInterval = null;
-
-    function toggleTagalog() {
-      const content = document.getElementById('advisoryTagalog');
-      const icon = document.getElementById('dropdownIcon');
-      if (content.style.display === "block") {
-        content.style.display = "none";
-        icon.innerText = "▼";
-      } else {
-        content.style.display = "block";
-        icon.innerText = "▲";
-      }
-    }
 
     function playAlarmSound() {
       try {
@@ -454,7 +440,7 @@
         const data = await res.json();
         const raw = data.advisory;
 
-        // Hiwalayin ang English at Tagalog gamit ang "/" separator
+        // Biyakin ang English at Tagalog gamit ang "/" divider
         if (raw.includes('/')) {
           const parts = raw.split('/');
           engBox.innerText = parts[0].trim();
@@ -534,6 +520,7 @@
       }
     }
 
+    // Auto-generator fallback para patuloy ang continuous readings
     async function autoGenerateIfIdle() {
       try {
         const res = await fetch('/api/readings');
