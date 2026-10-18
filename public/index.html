@@ -146,7 +146,7 @@
     .metric-label { font-size: 0.7rem; color: var(--text-sub); font-weight: 500; }
     .metric-val { font-size: 1rem; font-weight: 700; color: var(--text-main); margin-top: 2px; }
 
-    /* AI Advisory Card - Stacked English & Tagalog Layout */
+    /* AI Advisory Card - Stacked English & Tagalog Layout + Voice Button */
     .ai-card {
       background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(15, 23, 42, 0.6));
       border: 1px solid rgba(56, 189, 248, 0.25);
@@ -160,6 +160,30 @@
       text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
       display: flex; align-items: center; justify-content: space-between;
     }
+    .advisory-controls {
+      display: flex; gap: 6px; align-items: center;
+    }
+
+    /* Voice Read Button Style */
+    .voice-btn {
+      background: rgba(56, 189, 248, 0.2);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+    .voice-btn:hover {
+      background: var(--primary);
+      color: #0f172a;
+    }
+
     .advisory-english { font-size: 0.85rem; line-height: 1.4; color: #f8fafc; user-select: text; font-weight: 500; }
     
     .advisory-divider {
@@ -293,7 +317,10 @@
         <div class="advisory-container">
           <div class="advisory-header">
             <span>🤖 AI Public Advisory</span>
-            <span class="auto-tag">REAL-TIME</span>
+            <div class="advisory-controls">
+              <button class="voice-btn" onclick="speakAdvisory()">🔊 READ ALOUD</button>
+              <span class="auto-tag">REAL-TIME</span>
+            </div>
           </div>
           
           <!-- English Advisory Text -->
@@ -353,6 +380,27 @@
     let audioCtx = null;
     let alarmInterval = null;
 
+    // WEB SPEECH API - VOICE READ ALOUD
+    function speakAdvisory() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Stop active speech
+
+        const tagalogText = document.getElementById('advisoryTagalog').innerText;
+        const englishText = document.getElementById('advisoryEnglish').innerText;
+
+        // Babasahin muna sa Tagalog, bago sundan ng English
+        const speechText = `Babala: ${tagalogText}. Announcement: ${englishText}.`;
+        const utterance = new SpeechSynthesisUtterance(speechText);
+        
+        utterance.rate = 0.95; // Moderate pace
+        utterance.pitch = 1.0;
+        
+        window.speechSynthesis.speak(utterance);
+      } else {
+        console.log("Text-to-speech not supported in this browser.");
+      }
+    }
+
     function playAlarmSound() {
       try {
         if (!audioCtx) {
@@ -401,6 +449,9 @@
         clearInterval(alarmInterval);
         alarmInterval = null;
       }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
     }
 
     function initChart() {
@@ -440,7 +491,6 @@
         const data = await res.json();
         const raw = data.advisory;
 
-        // Biyakin ang English at Tagalog gamit ang "/" divider
         if (raw.includes('/')) {
           const parts = raw.split('/');
           engBox.innerText = parts[0].trim();
@@ -502,6 +552,7 @@
               document.getElementById('alertModal').style.display = 'flex';
               modalShownForCurrentHigh = true;
               playAlarmSound();
+              speakAdvisory(); // Kusa ding babasahin ng boses ang babala kapag lumampas sa 150cm!
             } else if (currentCategory !== 'HIGH') {
               modalShownForCurrentHigh = false;
               stopAlarmSound();
@@ -520,7 +571,6 @@
       }
     }
 
-    // Auto-generator fallback para patuloy ang continuous readings
     async function autoGenerateIfIdle() {
       try {
         const res = await fetch('/api/readings');
