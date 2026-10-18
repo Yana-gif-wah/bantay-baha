@@ -380,12 +380,18 @@
     let audioCtx = null;
     let alarmInterval = null;
 
-    // WEB SPEECH API - PURE ENGLISH VOICE
+    // WEB SPEECH API - STRICT PURE ENGLISH VOICE ONLY
     function speakAdvisory() {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
 
-        const englishText = document.getElementById('advisoryEnglish').innerText;
+        let englishText = document.getElementById('advisoryEnglish').innerText;
+        
+        // Siguraduhing kukunin LANG ang text bago ang "/" separator para walang Tagalog na makalusot
+        if (englishText.includes('/')) {
+          englishText = englishText.split('/')[0].trim();
+        }
+
         const textToSpeak = `Flood Monitor Advisory: ${englishText}`;
         
         const utterance = new SpeechSynthesisUtterance(textToSpeak);
