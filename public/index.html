@@ -317,7 +317,7 @@
     let audioCtx = null;
     let alarmInterval = null;
 
-    // Loud Emergency Siren Generator (Web Audio Synth)
+    // EAS / NDRRMC Dual-Tone Emergency Siren Generator (853Hz & 960Hz)
     function playAlarmSound() {
       try {
         if (!audioCtx) {
@@ -327,29 +327,36 @@
           audioCtx.resume();
         }
         
-        function produceSirenSweep() {
+        function produceNDRRMCAlert() {
           if (!audioCtx) return;
-          const osc = audioCtx.createOscillator();
+          
+          const osc1 = audioCtx.createOscillator();
+          const osc2 = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
-          
-          osc.type = 'sawtooth';
-          // Sweep frequency from 600Hz up to 1400Hz (emergency siren)
-          osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(1400, audioCtx.currentTime + 0.35);
-          
-          gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+
+          osc1.type = 'sawtooth';
+          osc2.type = 'square';
+
+          // NDRRMC alternating emergency siren pitches
+          osc1.frequency.setValueAtTime(853, audioCtx.currentTime);
+          osc2.frequency.setValueAtTime(960, audioCtx.currentTime);
+
+          gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
-          
-          osc.connect(gain);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
           gain.connect(audioCtx.destination);
-          
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.35);
+
+          osc1.start();
+          osc2.start();
+          osc1.stop(audioCtx.currentTime + 0.35);
+          osc2.stop(audioCtx.currentTime + 0.35);
         }
 
         stopAlarmSound();
-        produceSirenSweep();
-        alarmInterval = setInterval(produceSirenSweep, 400);
+        produceNDRRMCAlert();
+        alarmInterval = setInterval(produceNDRRMCAlert, 250);
       } catch (e) {
         console.log("Audio playback blocked:", e);
       }
@@ -486,7 +493,7 @@
       }
     }
 
-    // Unmute audio context on first click anywhere on page (Browser Autoplay Policy)
+    // Unmute audio context on first user click anywhere
     window.addEventListener('click', () => {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
