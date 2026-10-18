@@ -380,13 +380,15 @@
     let audioCtx = null;
     let alarmInterval = null;
 
-    // WEB SPEECH API - STRICT PURE ENGLISH VOICE ONLY
+    // WEB SPEECH API - STRICT PURE ENGLISH VOICE ONLY (WALANG CANCEL SA LOOP)
     function speakAdvisory() {
       if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
+        // Huwag agad mag-cancel para hindi maputol ang kasalukuyang binabasa
+        if (window.speechSynthesis.speaking) {
+          return; // Hayaang matapos muna ang boses bago magsimula ng bago
+        }
 
         let englishText = document.getElementById('advisoryEnglish').innerText;
-        
         if (englishText.includes('/')) {
           englishText = englishText.split('/')[0].trim();
         }
@@ -395,13 +397,11 @@
         
         const utterance = new SpeechSynthesisUtterance(textToSpeak);
         utterance.lang = 'en-US';
-        utterance.rate = 0.95;
+        utterance.rate = 0.9;
         utterance.pitch = 1.0;
         utterance.volume = 1.0;
 
         window.speechSynthesis.speak(utterance);
-      } else {
-        alert("Text-to-speech is not supported on this browser.");
       }
     }
 
@@ -453,9 +453,7 @@
         clearInterval(alarmInterval);
         alarmInterval = null;
       }
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
+      // Tinanggal ang speechSynthesis.cancel() dito para HINDI MAPUTOL ang boses!
     }
 
     function initChart() {
@@ -515,6 +513,9 @@
     function closeModal() {
       document.getElementById('alertModal').style.display = 'none';
       stopAlarmSound();
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Magsasara lang ang boses kapag pinalitaw ang Acknowledge Alert button!
+      }
     }
 
     async function fetchData() {
@@ -552,7 +553,6 @@
             const advisory = await generateAdvisory();
 
             if (currentCategory === 'HIGH' && !modalShownForCurrentHigh) {
-              // Kukunin lang ang English portion bago ang slash (/) para sa Pop-up Modal!
               let modalMsg = advisory;
               if (modalMsg.includes('/')) {
                 modalMsg = modalMsg.split('/')[0].trim();
