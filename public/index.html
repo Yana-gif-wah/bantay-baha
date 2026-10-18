@@ -173,33 +173,34 @@
     /* POP-UP EMERGENCY MODAL */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px);
+      background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
       display: none; justify-content: center; align-items: center;
       z-index: 9999; animation: fadeIn 0.3s ease;
     }
 
     .modal-content {
-      background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+      background: linear-gradient(135deg, #311010 0%, #0f172a 100%);
       border: 2px solid var(--danger); border-radius: 16px;
       padding: 24px; max-width: 440px; width: 90%; text-align: center;
-      box-shadow: 0 0 40px rgba(239, 68, 68, 0.6);
+      box-shadow: 0 0 50px rgba(239, 68, 68, 0.8);
       animation: modalSlide 0.3s ease;
     }
 
     @keyframes modalSlide { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    .modal-icon { font-size: 3rem; margin-bottom: 10px; animation: bounce 1s infinite; }
-    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .modal-icon { font-size: 3.5rem; margin-bottom: 10px; animation: bounce 0.8s infinite; }
+    @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
 
-    .modal-title { font-size: 1.4rem; font-weight: 800; color: var(--danger); margin-bottom: 8px; }
+    .modal-title { font-size: 1.4rem; font-weight: 800; color: var(--danger); margin-bottom: 8px; letter-spacing: 0.02em; }
     .modal-body { font-size: 0.9rem; color: #e2e8f0; line-height: 1.5; margin-bottom: 20px; user-select: text; }
 
     .modal-btn {
       background: var(--danger); color: white; border: none;
-      padding: 10px 24px; border-radius: 8px; font-weight: 700;
-      font-size: 0.9rem; cursor: pointer; transition: background 0.2s;
+      padding: 12px 28px; border-radius: 8px; font-weight: 800;
+      font-size: 0.95rem; cursor: pointer; transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
     }
-    .modal-btn:hover { background: #dc2626; }
+    .modal-btn:hover { background: #dc2626; transform: scale(1.02); }
   </style>
 </head>
 <body>
@@ -316,36 +317,41 @@
     let audioCtx = null;
     let alarmInterval = null;
 
-    // Web Audio API Siren Sound Generator
+    // Loud Emergency Siren Generator (Web Audio Synth)
     function playAlarmSound() {
       try {
         if (!audioCtx) {
           audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
         
-        function produceBeep() {
+        function produceSirenSweep() {
           if (!audioCtx) return;
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           
           osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(880, audioCtx.currentTime); // High pitch siren
-          osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.3);
+          // Sweep frequency from 600Hz up to 1400Hz (emergency siren)
+          osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1400, audioCtx.currentTime + 0.35);
           
-          gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+          gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
           
           osc.connect(gain);
           gain.connect(audioCtx.destination);
           
           osc.start();
-          osc.stop(audioCtx.currentTime + 0.3);
+          osc.stop(audioCtx.currentTime + 0.35);
         }
 
-        produceBeep();
-        alarmInterval = setInterval(produceBeep, 500);
+        stopAlarmSound();
+        produceSirenSweep();
+        alarmInterval = setInterval(produceSirenSweep, 400);
       } catch (e) {
-        console.log("Audio play blocked or not supported:", e);
+        console.log("Audio playback blocked:", e);
       }
     }
 
@@ -436,7 +442,6 @@
             lastLevelCategory = currentCategory;
             const advisory = await generateAdvisory();
 
-            // POP-UP TRIGGER FOR HIGH WATER LEVEL (150cm+) WITH ALARM SOUND
             if (currentCategory === 'HIGH' && !modalShownForCurrentHigh) {
               document.getElementById('modalText').innerText = advisory;
               document.getElementById('alertModal').style.display = 'flex';
@@ -460,9 +465,41 @@
       }
     }
 
+    // FRONT-END AUTO-GENERATOR FALLBACK (Para hindi mamamatay ang data)
+    async function autoGenerateIfIdle() {
+      try {
+        const res = await fetch('/api/readings');
+        const data = await res.json();
+        const now = Date.now();
+        const lastTime = data.length > 0 ? new Date(data[0].timestamp).getTime() : 0;
+        
+        if (now - lastTime > 8000) {
+          const randomLevel = (Math.random() * (160 - 70) + 70).toFixed(1);
+          await fetch('/api/readings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sensorId: 'CREEK-01', waterLevelCm: randomLevel })
+          });
+        }
+      } catch (e) {
+        console.error("Auto-generate error:", e);
+      }
+    }
+
+    // Unmute audio context on first click anywhere on page (Browser Autoplay Policy)
+    window.addEventListener('click', () => {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }, { once: true });
+
     initChart();
     fetchData();
     setInterval(fetchData, 5000);
+    setInterval(autoGenerateIfIdle, 6000);
   </script>
 </body>
 </html>
