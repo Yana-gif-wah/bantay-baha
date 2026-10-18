@@ -380,20 +380,17 @@
     let audioCtx = null;
     let alarmInterval = null;
 
-    // WEB SPEECH API - RELIABLE VOICE READ ALOUD
+    // WEB SPEECH API - PURE ENGLISH VOICE
     function speakAdvisory() {
       if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // I-stop ang anumang nagsasalita
+        window.speechSynthesis.cancel();
 
         const englishText = document.getElementById('advisoryEnglish').innerText;
-        const tagalogText = document.getElementById('advisoryTagalog').innerText;
-
-        // Babasahin muna ang Tagalog warning tapos lalapatan ng English advisory
-        const textToSpeak = `Emergency Alert! ${tagalogText}. ${englishText}`;
+        const textToSpeak = `Flood Monitor Advisory: ${englishText}`;
         
         const utterance = new SpeechSynthesisUtterance(textToSpeak);
-        utterance.lang = 'en-US'; // English voice engine para sa maximum OS compatibility
-        utterance.rate = 0.9;     // Medyo mabagal para malinaw ang bawat salita
+        utterance.lang = 'en-US';
+        utterance.rate = 0.95;
         utterance.pitch = 1.0;
         utterance.volume = 1.0;
 
@@ -573,7 +570,7 @@
       }
     }
 
-    // FRONT-END AUTO-GENERATOR FALLBACK
+    // FRONT-END AUTO-GENERATOR FALLBACK (Tumatakbo kahit sarado ang laptop / patay ang terminal loop)
     async function autoGenerateIfIdle() {
       try {
         const res = await fetch('/api/readings');
@@ -594,7 +591,6 @@
       }
     }
 
-    // Unmute audio at speech context sa unang click sa page
     window.addEventListener('click', () => {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
