@@ -380,24 +380,26 @@
     let audioCtx = null;
     let alarmInterval = null;
 
-    // WEB SPEECH API - VOICE READ ALOUD
+    // WEB SPEECH API - RELIABLE VOICE READ ALOUD
     function speakAdvisory() {
       if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // Stop active speech
+        window.speechSynthesis.cancel(); // I-stop ang anumang nagsasalita
 
-        const tagalogText = document.getElementById('advisoryTagalog').innerText;
         const englishText = document.getElementById('advisoryEnglish').innerText;
+        const tagalogText = document.getElementById('advisoryTagalog').innerText;
 
-        // Babasahin muna sa Tagalog, bago sundan ng English
-        const speechText = `Babala: ${tagalogText}. Announcement: ${englishText}.`;
-        const utterance = new SpeechSynthesisUtterance(speechText);
+        // Babasahin muna ang Tagalog warning tapos lalapatan ng English advisory
+        const textToSpeak = `Emergency Alert! ${tagalogText}. ${englishText}`;
         
-        utterance.rate = 0.95; // Moderate pace
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.lang = 'en-US'; // English voice engine para sa maximum OS compatibility
+        utterance.rate = 0.9;     // Medyo mabagal para malinaw ang bawat salita
         utterance.pitch = 1.0;
-        
+        utterance.volume = 1.0;
+
         window.speechSynthesis.speak(utterance);
       } else {
-        console.log("Text-to-speech not supported in this browser.");
+        alert("Text-to-speech is not supported on this browser.");
       }
     }
 
@@ -552,7 +554,7 @@
               document.getElementById('alertModal').style.display = 'flex';
               modalShownForCurrentHigh = true;
               playAlarmSound();
-              speakAdvisory(); // Kusa ding babasahin ng boses ang babala kapag lumampas sa 150cm!
+              speakAdvisory();
             } else if (currentCategory !== 'HIGH') {
               modalShownForCurrentHigh = false;
               stopAlarmSound();
@@ -571,6 +573,7 @@
       }
     }
 
+    // FRONT-END AUTO-GENERATOR FALLBACK
     async function autoGenerateIfIdle() {
       try {
         const res = await fetch('/api/readings');
@@ -591,6 +594,7 @@
       }
     }
 
+    // Unmute audio at speech context sa unang click sa page
     window.addEventListener('click', () => {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
